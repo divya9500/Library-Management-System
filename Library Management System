@@ -1,0 +1,871 @@
+
+//ADMIN ACTION
+
+package Library;
+import java.util.Scanner;
+public class Admin {
+    Scanner sc=new Scanner(System.in);
+    protected void SignIn() {
+        String userId = "admin123", password = "12345";
+        boolean signIn = false;
+        while (signIn == false) {
+            System.out.println("\nEnter Admin User ID : ");
+            String userId1 = sc.next();
+            if ((userId.equalsIgnoreCase(userId1))) {
+                while(signIn==false) {
+                    System.out.println("Enter Admin Password : ");
+                    String password1 = sc.next();
+                    if (password.equals(password1))
+                        signIn = true;
+                    else
+                        System.out.println("oops!,enter correct  password:");
+                }
+            } else
+                System.out.println("oops!,enter correct user id :");
+        }}
+}
+
+//USER ACTION
+
+package Library;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+public class UserAction extends Main {
+    Scanner sc=new Scanner(System.in);
+    public void addMember() throws SQLException {
+        BookAction bookAction =new BookAction();
+        int rollNum = 0, year = 0;
+        String moblieNumber = null, mailId = null, name = null, department = null;
+        int ch =inputMismatch("Press 1 Student :\nPress 2 Staff :\nPress 3 Back:") ;
+        int continue1 = 1;
+        while (continue1 == 1) {
+            if (ch == 1) {
+                rollNum =inputMismatch("Enter Student RollNumber");
+            }
+            if (ch <= 2) {
+                System.out.println("Enter User Name :");
+                name = sc.next();
+                sc.nextLine();
+                int x=0;
+              while(x==0) {
+                  System.out.println("Enter The Department (ex:CSE,ECE):");
+                  department = sc.next();
+                  ArrayList<String> list=bookAction.department();
+                  for(String  i:list){
+                      if(i.equals(department)){
+                          x=1;
+                          break;
+                      }
+                  }
+                  if(x<=1 && x!=1){
+                      System.out.println("Invalid Department");
+                  }
+              }
+                if (ch == 1) {
+                    boolean bo=true;
+                    while(bo==true){
+                        try{
+                            year = inputMismatch("Enter The Year (ex: 1,2,3,4)");
+                            if(year<=4)
+                               bo=false;
+                            else
+                                System.out.println("Invalid Year");
+                        }
+                        catch (InputMismatchException e){
+                            System.out.println("Invalid Key");
+                        }
+                    }}
+                System.out.println("Enter The Mobile Number");
+                moblieNumber = moblieNumber(2);
+                System.out.println("Enter the E-Mail ID :");
+                mailId = moblieNumber(1);
+            }
+            if (ch == 1)
+                MemberShip(rollNum, name, department, year, moblieNumber, mailId);
+
+            else if (ch == 2)
+               MemberShip(name, department, moblieNumber, mailId);
+            else if (ch == 3)
+                menuMethod();
+             else {
+                System.out.println("Invalid Key");
+                addMember();
+            }
+            int bb=1;
+            while(bb==1){
+                bb=0;
+                System.out.println();
+                int ch1 =inputMismatch("Press 1 Add\nPress 2 Back\nPress 3 Home");
+                if (ch1 == 1)
+                    continue1 = 1;
+
+                 else if (ch1 == 2) {
+                    continue1 = 0;
+                    addMember();
+
+                } else if (ch1 == 3)
+                    menuMethod();
+                 else{
+                    System.out.println("Invalid Key");
+                    bb=1;}
+            }}}
+    protected String moblieNumber(int ch){
+        String  moblieNumber1 = null,str="";
+        boolean bool=true;Pattern pattern = null;
+        while(bool==true) {
+            moblieNumber1 = sc.next();
+            if(ch==1){
+                pattern = Pattern.compile("^(.+)@(.+)$"); str=" Mail Id ";}
+            if(ch==2){
+                pattern = Pattern.compile("(0|91)?[6-9][0-9]{9}");str =" phone number ";}
+            Matcher matcher = pattern.matcher(moblieNumber1);
+            if (matcher.matches())
+                bool=false;
+            else
+                System.out.println("Given"+str+" is InValid \nplease,Enter valid"+str+":");
+        }
+        return  moblieNumber1;
+    }
+    protected void MemberShip(int rollNum, String name, String department, int year, String moblieNumber, String mailId) throws SQLException {
+
+        try {
+            PreparedStatement pstmt = con.prepareStatement(""
+                    + "insert into member(id,name,department,year,phoneNumber,mailId)values(?,?,?,?,?,?) ");
+            pstmt.setInt(1, rollNum);
+            pstmt.setString(2, name);
+            pstmt.setString(3, department);
+            pstmt.setInt(4, year);
+            pstmt.setString(5, moblieNumber);
+            pstmt.setString(6, mailId);
+            pstmt.executeUpdate();
+
+            System.out.println("Successfully Added");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("This Id Is Already Existing");
+        }
+    }
+    protected void MemberShip(String name, String department, String moblieNumber, String mailId) throws SQLException {
+        sections(department);
+        String count = String.valueOf(bookIdGenerate(department));
+        String id = depCode + count;
+
+        try {
+            PreparedStatement pstmt = con.prepareStatement(""
+                    + "insert into staff(Id,name,department,phoneNumber,mailId)values(?,?,?,?,?) ");
+            pstmt.setString(1, id);
+            pstmt.setString(2, name);
+            pstmt.setString(3, department);
+            pstmt.setString(4, moblieNumber);
+            pstmt.setString(5, mailId);
+            pstmt.executeUpdate();
+
+            System.out.println("successfully Added");
+            System.out.println("Staff UserId :"+id);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("This Id Is Already Existing");
+        }}
+    protected void memberDetails() throws SQLException {
+
+        BookAction bookAction=new BookAction();
+
+        int op = inputMismatch("Press 0 Student\nPress 1 Staff");
+        int cont=1;
+        while(cont==1) {
+
+            int Id = inputMismatch("Enter The USer");
+            ResultSet rs = null;
+
+            for (int j = 1; j <= 2; j++) {
+                ResultSet set = stmt.executeQuery("select * from " + list.get(op) + " where id='" + Id + "'");
+                if (set.next()) {
+                    try {
+                        if (j == 1) {
+                            System.out.println("History :");
+                            rs = stmt.executeQuery("select * from returnBook where Id='" + Id + "'");
+                        }
+                        if (j == 2) {
+                            System.out.println("Borrow Books : ");
+                            rs = stmt.executeQuery("select * from barrowBookDetails where Id='" + Id + "'");
+                        }
+                        boolean b=rs.next();
+                        if(b) {
+                            bookAction.Column();
+                           bookAction.loop(rs, 7, b);
+                        }else System.out.println("\t No Books\n");
+                    } catch (SQLSyntaxErrorException e) {
+
+                        System.out.println("\t\t\t\tNo Books\n");
+                    }
+                } else {
+                    System.out.println("Invalid Id");
+                    memberDetails();
+                }
+            }
+            boolean b1=true;
+            while( b1==true){
+
+                int ch =inputMismatch("Press 1 Continue\nPress 2 Back\nPress 3 Home");
+                if (ch == 1){
+                    cont = 1;b1=false;}
+                else if (ch == 2){
+                    memberDetails();b1=false;}
+                else if (ch == 3) {
+                   menuMethod();b1=false;
+                } else {
+                    System.out.println("Invalid Key");
+                }}
+        }
+
+    }
+    protected  void DeleteMember() throws SQLException {
+        BookAction bookAction=new BookAction();
+        int op = inputMismatch("Press 0 Student :\nPress 1 Staff :");
+        int Id =inputMismatch("Enter User Id:");
+
+        ResultSet set= stmt.executeQuery("select * from " + list.get(op) + " where id='" + Id + "'");
+        if (set.next()) {
+            ResultSet rs = stmt.executeQuery("select * from barrowBookDetails where id='" + Id + "'");
+            int count = 0;
+            while (rs.next())
+                count++;
+            System.out.println(count);
+            if (count == 0) {
+                stmt.executeUpdate("delete from " + list.get(op) + " where id='" + Id + "'");
+                System.out.println("Successfully Deleted");
+            } else {
+                System.out.println("Borrow Books");
+                rs = stmt.executeQuery("select * from barrowBookDetails where Id='" + Id + "'");
+                boolean b=rs.next();
+                if(b==true){
+                    bookAction.Column();
+                   bookAction.loop(rs,7,b);}
+                else
+                    System.out.println("\tNo Books\n");
+            }} else
+                 System.out.println("Invalid Id\n");
+    }
+
+}
+
+//BOOK ACTION
+
+package Library;
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class BookAction extends Main {
+    Scanner sc=new Scanner(System.in);
+    public void barrowColumnName() {
+        System.out.printf("%35s", "StudentName");System.out.printf("%35s", "StudentId");System.out.printf("%35s", "BookId");System.out.printf("%35s", "Date");
+        System.out.printf("%35s", "ReturnDate");System.out.printf("%35s", "BookName");System.out.printf("%35s", "Department\n");
+    }
+    public static void BookColumnName() {
+        System.out.printf("%35s", "BookId");System.out.printf("%35s", "BookName");System.out.printf("%35s", "Author");System.out.printf("%35s", "PublishYear");
+        System.out.printf("%35s", "Department");System.out.printf("%35s", "Status\n");
+    }
+    protected void Column() {
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        barrowColumnName();
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    }
+    protected void Column1(){
+        System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        BookColumnName();
+        System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    }
+
+    protected void loop(ResultSet rs,int end,Boolean b) throws SQLException {
+            while (b) {
+            for (int i = 1; i <= end; i++)
+                System.out.printf("%35s", rs.getString(i));
+            System.out.println("\n");
+            b=rs.next();
+        }
+
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    }
+    private void newSection(String secName, String seccode, int code) throws SQLException {
+        try {
+            String query = "insert into section(department,depcode,code) values('" + secName + "','" + seccode + "','" + code + "')";
+            stmt.executeUpdate(query);
+            System.out.println("Branch Successfully Added");
+        }catch (SQLIntegrityConstraintViolationException e){
+            System.out.println("Branch Already Added");
+        }
+    }
+    public String showDepartment() throws SQLException {
+        System.out.println("Press 0 Home :");
+        ResultSet rs = stmt.executeQuery("select * from section");
+        int cunt = 1;
+        String dep = "";
+        while (rs.next()) {
+            for (int i = 1; i < 2; i++) {
+                dep = rs.getString("department");
+                System.out.println("Press " + cunt +" " +dep +" Branch");
+            }
+            cunt++;
+        }
+        int choice2 = sc.nextInt();
+        if(choice2==0) {
+            menuMethod();
+        }
+        if(choice2<=cunt) {
+            ResultSet rs1 = stmt.executeQuery("select * from section where number='" + choice2 + "'");
+            while (rs1.next()) {
+                for (int i = 1; i < 2; i++)
+                    dep = rs1.getString("department");
+            }
+        }
+        else{
+            System.out.println("Invalid Key");
+            showDepartment();
+        }
+        return dep;
+    }
+    public void addBook() throws SQLException {
+        int op=inputMismatch("Press 1 Add Existing Branch\nPress 2  Add New Branch\nPress 3 Back");
+        if(op==1) {
+            ExistingSection();
+        }else if(op==2){
+            System.out.println("Enter The New Branch Name :");
+            String secName=sc.nextLine();
+            sc.nextLine();
+            System.out.println("Enter The Department Code(ex:EC,CS,ME..) :");
+            String seccode=sc.next();
+
+            int code=inputMismatch("Enter The Branch Code(ex:100,200,..) :");
+            newSection(secName,seccode,code);
+            ExistingSection();
+        }else if(op==3){
+            menuMethod();
+        }
+        else {
+            System.out.println("Invalid choice...");
+            addBook();
+        }
+    }
+    private void ExistingSection() throws SQLException {
+        String dep=showDepartment();
+        System.out.println("How Many Books You Want To Add?");
+        int add=sc.nextInt();
+        for(int i=1;i<=add;i++) {
+            sc.nextLine();
+            System.out.println("Enter The Book Name :");
+            String title = sc.nextLine();
+
+            System.out.println("Enter The Author Name :");
+            String author = sc.nextLine();
+            // sc.nextLine();
+            int year = inputMismatch("Enter The Publish Year :");
+
+            float price = inputMismatch("Enter The Book Price :");
+            int id1 = bookIdGenerate(dep);
+            addBook(id1, title, author, year, dep, price);
+        }
+        int i=1;
+        while(i==1){
+            i=0;
+            int ch=inputMismatch("Press 1 Back\nPress 2 Home\nPress 3 END ");
+            if(ch==1)
+                ExistingSection();
+            else if(ch==2)
+                menuMethod();
+            else if(ch==3)
+                exit();
+            else{
+                System.out.println("Invalid Key");
+                i=1;
+            }}
+    }
+    protected void addBook(int id1, String title, String author, int publishYear, String type, float price) throws SQLException {
+        String status = "Available";
+        String type1 = sections(type);
+        String id = type1 + id1;
+
+        PreparedStatement stmt1 = con.prepareStatement("insert into book values(?,?,?,?,?,?,?)");
+        stmt1.setString(1, id);
+        stmt1.setString(2, title);
+        stmt1.setString(3, author);
+        stmt1.setInt(4, publishYear);
+        stmt1.setString(5, type);
+        stmt1.setString(6, status);
+        stmt1.setFloat(7, price);
+        stmt1.executeUpdate();
+        System.out.println("Book Successfully Added\n");
+    }
+    public void showAllBooks() throws SQLException {
+        ArrayList <String>department=department();
+        for (String j : department) {
+            System.out.println("Section :" +j + "\n");
+            ResultSet rs = stmt.executeQuery("select * from book where type='" + j + "'");
+            boolean b=rs.next();
+            if(b) {
+                Column1();
+                loop(rs, 6,b);
+            }else System.out.println("\tNo Books\n");
+        }
+    }
+    protected void BookFiltering() throws SQLException {
+
+        String dep = showDepartment();
+        ResultSet rs = stmt.executeQuery("select * from book where type='" + dep + "'");
+        boolean b=rs.next();
+        if(b) {
+            Column1();
+            loop(rs, 6, b);
+        }else System.out.println("No Books\n");
+    }
+    protected static ArrayList<String> department() throws SQLException {
+        ArrayList<String> department = new ArrayList<>();
+        ResultSet rs1 = stmt.executeQuery("select * from section");
+        while (rs1.next()) {
+            department.add(rs1.getString(2));
+        }
+        return department;
+    }
+    protected  void showBookDetails() throws SQLException {
+        System.out.println("\n************************************************************************");
+        System.out.printf("%15s","Section");System.out.printf("%15s","Available");System.out.printf("%15s","NotAvailable");System.out.printf("%15s","Total\n");
+        System.out.println("************************************************************************\n");
+        ArrayList<String> department=department();
+        int sum=0;
+        for(String i:department){
+            System.out.printf("%15s",i);
+            ResultSet rs = null;int total=0;
+            for(int j=1;j<=2;j++){
+                if(j==1)
+                    rs=stmt.executeQuery("select * from book where type='"+i+"' AND status='Available'");
+                if(j==2)
+                    rs=stmt.executeQuery("select * from book where type='"+i+"' AND status='NotAvailable'");
+                int count=0;
+                while (rs.next())
+                    count++;
+                System.out.printf("%15s",count);
+                total+=count;
+            }
+            sum+=total;
+            System.out.printf("%15s",total);
+
+            System.out.println();
+
+        }
+        System.out.printf("%15s","TOTAL");
+        System.out.printf("%46s",sum+"\n");
+        System.out.println("************************************************************************\n");
+    }
+    private void choice1(int x) throws SQLException{
+
+        int op1=inputMismatch("Enter 1 for back \nEnter 2 for Main Menu:\nEnter 3 for exit: ");
+        if(op1==1)
+            choice(x);
+        else if(op1==2){
+            menuMethod();
+        }else if(op1==3)
+            System.exit(0);
+        else {
+            System.out.println("Invalid Key");
+            choice1(x);
+        }
+    }
+    protected void choice(int x) throws SQLException {
+
+        int op =inputMismatch("Press 1 Show All Books:\nPress 2 Branch Wise:\nPress 3 Back :");
+
+        switch (op) {
+            case 1:
+                showAllBooks();
+                if(x==1) {
+                    showBookDetails();
+                    choice1(x);
+                }
+                break;
+            case 2:
+                BookFiltering();
+                if(x==1)
+                    choice1(x);
+                break;
+            case 3:
+                if(x==1){
+                    menuMethod();
+                }
+                if(x==2){
+                    menuMethod();
+                }
+
+                break;
+            default:
+                System.out.println("Invalid Key");
+                choice(x);
+                break;
+        }
+    }
+    public void BarrowBook() throws SQLException {
+        barrow();
+        int option=inputMismatch("Press 1 Back:\nPress 2 Home: \nPress 3 END :");
+        if(option==1)
+            BarrowBook();
+        else if(option==2)
+            menuMethod();
+        else if(option==3)
+            exit();
+        else {
+            System.out.println("Invalid Key\n");
+            BarrowBook();
+        }
+    }
+    protected void barrow() throws SQLException {
+        int arr[] = {4, 10};
+        int option = inputMismatch("\nPress 0 Student :\nPress 1 Staff :\nPress 2 Back :");
+
+        if(option<=1){
+            choice(2);
+            int check=1;
+            while(check==1){
+
+              //  String ID = inputMismatch("Enter The User Id :");
+                System.out.println("Enter User Id :");
+                String Id = sc.next();
+
+                int continue1 =1;
+                while (continue1==1){
+                    ResultSet rs = stmt.executeQuery("select * from " + list.get(option) + " where id='" + Id + "'");
+                    if (rs.next()) {
+                        check=2;
+                        ResultSet rs2 = stmt.executeQuery("select * from barrowBookDetails where id='" + Id + "'");
+                        int count = 0;
+                        while (rs2.next())
+                            count++;
+
+                        if (count < arr[option]) {
+                            System.out.println("Enter The Book Id:");
+                            String bookId = sc.next();
+                            ResultSet rs1 = stmt.executeQuery("select * from book where Id='" + bookId + "' AND status='Available'");
+                            boolean bool = rs1.next();
+                            if (bool) {
+                                Column1();
+                                loop(rs1,6,bool);
+
+                                int ch = inputMismatch("Conformation \nPress 1 Yes :\nPress 2 No : ");
+                                if (ch == 1)
+                                    conformation(Id, bookId, option);
+                                else if (ch == 2)
+                                    System.out.println();
+                                else
+                                    System.out.println("Invalid Key");
+
+                                int in=inputMismatch("Press 1 Add Book:\nPress 2 Back\nPress 3 Home :");
+                                if(in==1){
+                                    continue1=1;
+                                } else if (in==2) {
+                                    continue1=0;
+                                    barrow();
+
+                                } else if(in==3){
+                                    continue1=0;
+                                    menuMethod();
+                                }
+                                else {
+                                    continue1=0;
+                                    System.out.println("Invalid Key");
+                                }
+                            } else {
+                                System.out.println("Invalid Book ID or Unavailable Book\n");
+                            }
+
+                        } else {
+                            continue1=0;
+                            System.out.println("per Id 4 books only\n");
+                            Column();
+                            ResultSet rs3 = stmt.executeQuery("select * from barrowBookDetails where id='"+Id+"'");
+                            boolean boo1=rs3.next();
+                            loop(rs3,7,boo1);
+
+                        }
+                    } else {
+                        continue1=0;
+                        System.out.println("Invalid Id\n");
+                    }}
+
+            }} else if (option==2) {
+                      menuMethod();
+        }else {
+            System.out.println("Invalid Key");
+            barrow();
+        }
+    }
+    public void conformation(String Id, String bookId, int op) throws SQLException {
+        int arr[] = {10, 15};
+        LocalDate date = LocalDate.now();
+        LocalTime time = LocalTime.now();
+        stmt.executeUpdate("insert into  barrowBook  values" + "('" + Id + "','" + bookId + "','" + date + "','" + time + "','" + date.plusDays(arr[op]) + "')");
+        stmt.executeUpdate("INSERT INTO barrowBookDetails select " + list.get(op) + ".name,barrowBook.studentId," +
+                "barrowBook.bookId,barrowBook.date,barrowBook.returnDate,book.title," + list.get(op) + ".department from " +
+                "((barrowBook INNER JOIN book ON barrowBook.bookId ='"+bookId+"'AND book.id='"+bookId+"') INNER JOIN " + list.get(op) + " ON " +
+                "barrowBook.studentId = '"+Id+"' AND "+list.get(op) + ".Id='"+Id+"')");
+        stmt.executeUpdate("UPDATE book SET status = 'NotAvailable' WHERE id='" + bookId + "'");
+        System.out.println("Book Return Date :" + date.plusDays(10));
+
+    }
+    protected void ReturnBooks() throws SQLException {
+
+        ReturnBook();
+        int option1=inputMismatch("Enter 1 for back:\nEnter 2 for mainMenu: \nEnter 3 for exit:");
+        if(option1==1)
+            ReturnBooks();
+        else if(option1==2)
+            menuMethod();
+        else if(option1==3)
+            exit();
+        else
+            System.out.println("Invalid Key");
+    }
+    public void ReturnBook() throws SQLException {
+        int option =inputMismatch("Press 0 Student :\nPress 1 Staff :\nPress 2 Back :");
+        if(option<=1) {
+            int continue1 = 1;
+            while (continue1 == 1) {
+                int Id =inputMismatch("Enter The User Id :");
+                int check=1;
+                while(check==1){
+                    ResultSet rs1= stmt.executeQuery("select * from " + list.get(option) + " where id='" + Id + "'");
+                    boolean b1=rs1.next();
+                    if (b1) {
+                        continue1=0;
+                        ResultSet rs3 = stmt.executeQuery("select * from barrowBookDetails where id= '" + Id+"'" );
+                        boolean b2=rs3.next();
+                        if(b2) {
+                            Column();
+                            loop(rs3, 7,b2);
+
+                            System.out.println("Enter The Book Id: ");
+                            String bookId = sc.next();
+                            ResultSet rs = stmt.executeQuery("select * from barrowBookDetails where id='" + Id + "' AND bookId='" + bookId + "'");
+                            boolean b=rs.next();
+                            if (b) {
+                                Date returnDate1 = null;
+                                while(b){
+                                    for(int i=1;i<=7;i++)
+                                        returnDate1 = rs.getDate("returnDate");
+                                    b=rs.next();
+                                }// returnDate1=rs.getDate("returnDate");
+                                LocalDate date1 = LocalDate.now()/*.plusDays(11)*/;
+                                Date date = Date.valueOf(date1);//  System.out.println(date + "   " + returnDate1);
+                                if (date.equals(returnDate1) || date.before(returnDate1)) {
+                                    returnUpdate( Id, bookId);
+                                } else {
+                                    long difference_In_Time = date.getTime() - returnDate1.getTime();
+                                    long difference_In_Days = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
+                                    System.out.println("Fine Amount :" + difference_In_Days);
+                                    System.out.println();
+                                    int fine =inputMismatch("Enter The Fine Amount:");
+                                    if (fine == difference_In_Days)
+                                        returnUpdate( Id, bookId);
+                                }}
+                        }
+                        else {
+                            System.out.println("No Books");
+                        }}
+                    else {
+                        System.out.println("Invalid Id");check=0;
+                    }
+                    boolean boo1=true;
+                    while(boo1 && check==1){
+                        boo1=false;
+                        int op1=inputMismatch("Press 1 Return\nPress 2 Back\nPress 3 Home");
+                        if(op1==1)
+                            check=1;
+                        else if(op1==2)
+                            ReturnBook();
+                        else if(op1==3)
+                           menuMethod();
+                        else {
+                            System.out.println("Invalid Key");
+                            boo1=true;
+                        }}
+                }}}
+        else if(option==2)
+            menuMethod();
+        else
+            System.out.println("Invalid Key");
+    }
+    private void returnUpdate( int Id, String bookId) throws SQLException {
+        LocalDate date = LocalDate.now();
+        stmt.executeUpdate("UPDATE  barrowBookDetails SET returnDate = '" + date + "'  WHERE bookId='" + bookId + "' AND id='" + Id + "'");
+        stmt.executeUpdate("insert into returnBook select * from barrowBookDetails  WHERE bookId='" + bookId + "' AND id='" + Id + "'");
+        stmt.executeUpdate("delete from barrowBookDetails where Id='" + Id + "' AND bookId='" + bookId + "'");
+        stmt.executeUpdate("delete from barrowBook where studentId='" + Id + "' AND bookId='" + bookId + "'");
+        stmt.executeUpdate("UPDATE book SET status = 'Available' WHERE id='" + bookId + "'");
+        System.out.println("Successfully Returned");
+    }
+    protected void DeleteBook() throws SQLException {
+
+        System.out.println("Enter The Book Id :");
+        String Id =sc.next();
+        ResultSet set= stmt.executeQuery("select * from book where id='" + Id + "'");
+        Boolean booo= set.next();
+        if (booo) {
+            BookColumnName();
+            loop(set,7, true);
+            int conform=inputMismatch("Conformation\nPress 1 yes\nPress 2 No");
+            if(conform==1) {
+                stmt.executeUpdate("delete from book where id='" + Id + "'");
+                System.out.println("Successfully Deleted");
+            }
+            else
+                System.out.println();
+        } else {
+            System.out.println("Invalid Book Id");
+            DeleteBook();
+        }}
+
+}
+
+//MAIN PROGRAM
+
+package Library;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+public class Main {
+    static Connection con;
+    static Statement stmt;
+    static ArrayList<String> list = new ArrayList<>();
+    static {
+        try {
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/library", "root", "1818");
+            stmt = con.createStatement();
+            list.add("member");
+            list.add("staff");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+    public void exit() {
+        System.exit(0);
+    }
+    protected int inputMismatch(String str){
+        Scanner sc1=new Scanner(System.in);
+
+        int id=0;
+        try{
+            System.out.println(str);
+            id=sc1.nextInt();
+
+        }catch(InputMismatchException e){
+            System.out.println("Invalid Key");
+            inputMismatch(str);
+        }
+        return id;
+    }
+    protected int bookIdGenerate(String dep) throws SQLException {
+        int id1 = 100;
+        try {
+            ResultSet set = stmt.executeQuery("select * from  book  where type='" + dep + "'");
+            while (set.next())
+                id1++;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            id1 = 100;
+        }
+        return id1;
+    }
+  static  int depCode = 0;
+    protected String sections(String type) throws SQLException {
+        String id = "";
+        ResultSet set = stmt.executeQuery("select * from section where department='" + type + "'");
+        while (set.next()) {
+            for (int i = 1; i <= 2; i++) {
+                id = set.getString("depcode");
+                depCode = set.getInt("code");
+            }
+        }
+        return id;
+    }
+    public void options() {
+        System.out.println("\t\t---------------------------------------");
+        System.out.println("\n\t\t\t\tPress 1 ADD BOOK"	+"\n\t\t\t\tPress 2 New Membership \n\t\t\t\tPress 3 Show Book \n"
+                + "\t\t\t\tPress 4 Borrower's"	+
+                "\n\t\t\t\tPress 5 Return\n\t\t\t\tPress 6 More Details\n");
+        System.out.println("\t\t---------------------------------------");
+    }
+    public  void menuMethod() throws SQLException {
+        options();
+        BookAction bookAction=new BookAction();
+        UserAction userAction=new UserAction();
+
+        while(true) {
+            int choice=0,cho=0;
+            while(cho==0){
+                Scanner sc=new Scanner(System.in);
+                cho=1;
+                try {
+                    choice = sc.nextInt();
+
+                }catch(InputMismatchException e){
+                    cho=0;
+                    System.out.println("Invalid Key\n");
+                    options();
+                }
+            }
+            switch (choice) {
+                case 1:
+                   bookAction.addBook();
+                    break;
+                case 2:
+                    userAction.addMember();
+                    break;
+                case 3:
+                   bookAction.choice(1);
+                    break;
+                case 4:
+                    bookAction.BarrowBook();
+                    break;
+                case 5:
+                   bookAction.ReturnBooks();
+                    break;
+                case 6:
+                    int cont=1;
+                    String str="Enter 1 for Member Details\nEnter 2 for Delete Member\nPress 3 Delete Book";
+                    int choice1 = inputMismatch(str);
+                    while(cont==1) {
+                        if (choice1 == 1)
+                            userAction.memberDetails();
+                        else if (choice1 == 2)
+                          userAction.DeleteMember();
+                        else if (choice1 == 3) {
+                         bookAction.DeleteBook();
+                            String str1="Press 1 Continue\nPress 2 Back\nPress 3 Home";
+                            int in = inputMismatch(str1);
+                            if (in == 1)
+                              bookAction. DeleteBook();
+                            else if (in == 2) {
+                                cont=0;
+                            } else if (in==3) {
+                                menuMethod();
+                            } else System.out.println("Invalid Key");
+                        } else
+                            System.out.println("Invalid Key");
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+                    menuMethod();
+                    break;
+            }}
+    }
+
+    public static void main(String[] args) throws SQLException {
+       BookAction bookAction=new BookAction();
+       Admin admin=new Admin();
+        System.out.println("\t\t\t\t\tWELCOME TO PODHIGAI LIBRARY");
+       admin .SignIn();
+        bookAction.menuMethod();
+    }}
